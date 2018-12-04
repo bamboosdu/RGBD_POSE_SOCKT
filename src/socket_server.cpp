@@ -31,6 +31,7 @@
 #include <fstream>
 #include <sstream>
 
+
 #include "socket.h"
 #include "imageCallback.h"
 using namespace std;
@@ -40,6 +41,7 @@ int sockfd,client_fd,sin_size; /*sock_fd:监听 socket;client_fd:数据传输 so
 #define PI 3.1415926
 // data offline rcv writer
 ofstream ofs_off;
+
 
 int main(int argc, char **argv){
 
@@ -55,10 +57,12 @@ int main(int argc, char **argv){
     //ofs_off.open("/home/dsy/catkin_ws/src/virtual_scan/data/offline/pose_history.txt");
     //ofs_off.close();
     // topic: image
+
     image_transport::Subscriber subdepth = it.subscribe("/camera/depth/image_raw", 1, depthImageCallback);//camera/depth/image_raw
     image_transport::Subscriber subrgb = it.subscribe("/camera/rgb/image_raw", 1, rgbImageCallback);//camera/rgb/image_raw
   
      sockfd=initializeDataEngine(port);
+
 
     while (1)
     {
@@ -89,7 +93,9 @@ int main(int argc, char **argv){
     
         getPose(client_fd);
        
+<<<<<<< HEAD
         }*/       
+
     }
     return 0;
 }

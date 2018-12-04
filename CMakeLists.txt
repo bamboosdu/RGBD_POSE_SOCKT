@@ -1,11 +1,14 @@
 cmake_minimum_required(VERSION 2.8.3)
+
 project(socket_img)
+
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 
 set(octomap_DIR /opt/ros/kinetic/share/octomap)
+
 
 set(gazebo_DIR "/usr/share/gazebo/cmake")
 
@@ -15,9 +18,7 @@ find_package(catkin REQUIRED COMPONENTS
   rospy
   std_msgs
   roscpp
-  #gazebo
-  #gazebo_ros         
-  #gazebo_msgs
+
   OpenCV
   camera_calibration_parsers
   cv_bridge 
@@ -28,7 +29,6 @@ find_package(catkin REQUIRED COMPONENTS
   octomap
   #Eigen
 )
-
 
 catkin_package(
 #  INCLUDE_DIRS include
@@ -47,6 +47,7 @@ catkin_package(
 SET( EIGEN_INCLUDE_DIR /usr/include/eigen3 )
 include_directories(
   ${catkin_INCLUDE_DIRS}
+
   # ${GAZEBO_INCLUDE_DIRS}
   # ${gazebo_msgs_INCLUDE_DIRS}
    ${OpenCV_INCLUDE_DIRS}
