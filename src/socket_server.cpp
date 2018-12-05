@@ -34,10 +34,12 @@
 
 #include "socket.h"
 #include "imageCallback.h"
+#include "poseCallback.h"
 using namespace std;
 
-unsigned short port= 3333; /*服务器监听端口号 */
-int sockfd,client_fd,sin_size; /*sock_fd:监听 socket;client_fd:数据传输 socket */
+unsigned short portRGB= 3333; /*服务器监听端口号 */
+unsigned short portPOSE= 3332; /*服务器监听端口号 */
+int sockfd,sockpd,server_fd,server_pd,sin_size; /*sock_fd:监听 socket;client_fd:数据传输 socket */
 #define PI 3.1415926
 // data offline rcv writer
 ofstream ofs_off;
@@ -51,17 +53,15 @@ int main(int argc, char **argv){
     ros::Rate loop_rate(10);//100
     
     image_transport::ImageTransport it(n);
-    // calibration
-    //ros::Subscriber calib_sub = n.subscribe("camera/depth/camera_info", 1, infoCallback);
-    // write
-    //ofs_off.open("/home/dsy/catkin_ws/src/virtual_scan/data/offline/pose_history.txt");
-    //ofs_off.close();
-    // topic: image
-
+    
     image_transport::Subscriber subdepth = it.subscribe("/camera/depth/image_raw", 1, depthImageCallback);//camera/depth/image_raw
     image_transport::Subscriber subrgb = it.subscribe("/camera/rgb/image_raw", 1, rgbImageCallback);//camera/rgb/image_raw
-  
-     sockfd=initializeDataEngine(port);
+   
+    
+    ros::Subscriber sub_amcl = n.subscribe("/amcl_pose", 1, poseAMCLCallback);
+   
+     sockfd=initializeDataEngine(portRGB);//获得rgbd图传的套接字
+     sockpd=initializeDataEngine(portPOSE);//获得pose的套接字
 
 
     while (1)
@@ -70,31 +70,51 @@ int main(int argc, char **argv){
         sin_size = sizeof(my_addr);
 
         printf("%s\n", "waiting for a connection");
+     
+///////////////////rgbd///////////////////////
 
-        if ((client_fd = accept(sockfd, (struct sockaddr*)&remote_addr, (socklen_t *) &sin_size)) == -1)//接收客户端的连接
+        if ((server_fd = accept(sockfd, (struct sockaddr*)&remote_addr, (socklen_t *) &sin_size)) == -1)//接收客户端的连接
         {
             perror("accept");
             continue;
         }
 
-        printf("%s\n", "received a connection");
-        
-        // disable nagle
-        int flag = 1;
-        if(setsockopt(client_fd, IPPROTO_TCP, TCP_NODELAY, (char*)&flag, sizeof(int))<0){
-            printf("disable nagle failed\n");
+        printf("%s\n", "received a rgbd connection");
+
+///////////////////pose///////////////////////
+
+        if ((server_pd = accept(sockpd, (struct sockaddr*)&remote_addr, (socklen_t *) &sin_size)) == -1)//接收客户端的连接
+        {
+            perror("accept");
+            continue;
         }
 
+        printf("%s\n", "received a pose connection");
+
+///////////////////// disable nagle///////////////
+
+        int flag = 1;
+        if(setsockopt(server_fd, IPPROTO_TCP, TCP_NODELAY, (char*)&flag, sizeof(int))<0||setsockopt(server_pd, IPPROTO_TCP, TCP_NODELAY, (char*)&flag, sizeof(int))<0){
+            printf("disable nagle failed\n");
+        }
+//////////////////判断是否从rgbd和pose的topic中获得了需要的信息/////////////////////////
+         while(rgb_ready==false||depth_ready==false||pose_ready==false)
+    {
+       if(pose_ready==false)
+            printf("%s\n","pose not ready!");
+      // getchar();
+       ros::spinOnce();
+    }
+
         printf("ask for RGBD\n");
-        getRGBD(client_fd);
-        /*printf("ask for POSE\n");
-        if(n.ok())
-        {
-    
-        getPose(client_fd);
+        getRGBD(server_fd);
+        
+        
+        printf("ask for POSE\n"); 
+        getPose(server_pd);
        
-<<<<<<< HEAD
-        }*/       
+
+          
 
     }
     return 0;

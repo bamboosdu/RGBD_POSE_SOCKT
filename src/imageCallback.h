@@ -7,7 +7,7 @@ const int rbtnum = 1;
 
 bool rgb_ready = false;
 bool depth_ready = false;
-bool pose_ready=false;
+
 
 vector<cv::Mat> crt_rgb_images(rbtnum);
 vector<cv::Mat> crt_depth_images(rbtnum);
@@ -79,11 +79,7 @@ void depthImageCallback(const sensor_msgs::ImageConstPtr& msg){
 bool getRGBD(int client_fd){
     //ros::spinOnce();
     // rgb
-    while(rgb_ready==false||depth_ready==false)
-    {
-       printf("not ready!");
-       ros::spinOnce();
-    }
+   
     {
         int data_len = 480 * 640 * 3 * sizeof(uchar) * rbtnum;
         char* rgbData = (char *)malloc(data_len);
