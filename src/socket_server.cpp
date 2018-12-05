@@ -53,11 +53,11 @@ int main(int argc, char **argv){
     ros::Rate loop_rate(10);//100
     
     image_transport::ImageTransport it(n);
-    
+    //订阅rgbd的话题
     image_transport::Subscriber subdepth = it.subscribe("/camera/depth/image_raw", 1, depthImageCallback);//camera/depth/image_raw
     image_transport::Subscriber subrgb = it.subscribe("/camera/rgb/image_raw", 1, rgbImageCallback);//camera/rgb/image_raw
    
-    
+    //订阅机器人当前pose的话题
     ros::Subscriber sub_amcl = n.subscribe("/amcl_pose", 1, poseAMCLCallback);
    
      sockfd=initializeDataEngine(portRGB);//获得rgbd图传的套接字
@@ -97,7 +97,7 @@ int main(int argc, char **argv){
         if(setsockopt(server_fd, IPPROTO_TCP, TCP_NODELAY, (char*)&flag, sizeof(int))<0||setsockopt(server_pd, IPPROTO_TCP, TCP_NODELAY, (char*)&flag, sizeof(int))<0){
             printf("disable nagle failed\n");
         }
-//////////////////判断是否从rgbd和pose的topic中获得了需要的信息/////////////////////////
+//////////////////判断是否从rgbd和pose////////////////////////////
          while(rgb_ready==false||depth_ready==false||pose_ready==false)
     {
        if(pose_ready==false)
