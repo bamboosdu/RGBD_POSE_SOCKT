@@ -77,3 +77,26 @@ bool getPose(int client_fd){
 
       
 }
+
+bool goalPose(int client_fd,float pose[7]){
+    int data_len=7*sizeof(float);
+    char* poseData=(char *)malloc(data_len);
+    
+    int rcv_len=recvData(client_fd,poseData,data_len);
+    
+    if(rcv_len<0){
+        return false;
+    }
+
+    //copy the data from socket pkg
+    int ind=0;
+    
+    for(int i=0;i<7;++i){
+        memcpy(&pose[i],&poseData[ind],sizeof(float));
+        ind+sizeof(float);
+    }
+    return true;
+
+    //free(poseData);
+    
+}

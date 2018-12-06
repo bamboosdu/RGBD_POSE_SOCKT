@@ -18,7 +18,8 @@ find_package(catkin REQUIRED COMPONENTS
   rospy
   std_msgs
   roscpp
-
+  actionlib
+  move_base_msgs
   OpenCV
   camera_calibration_parsers
   cv_bridge 

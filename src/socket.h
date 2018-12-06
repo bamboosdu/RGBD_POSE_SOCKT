@@ -50,9 +50,12 @@ bool sendData(const int client_fd, const char *ch, const int len)
         return true;
     }
 }
+
+
 //接收数据
 int recvData(const int client_fd, char buf[], int len)
 {
+    printf("recvData!\n");
     memset (buf, 0, len);
 
     int i=0;
@@ -60,9 +63,12 @@ int recvData(const int client_fd, char buf[], int len)
         char buf_tem[MAXRECV];
         memset (buf_tem, 0, MAXRECV);
         int status = recv(client_fd, buf_tem, MAXRECV, 0);
+        if (status<0){
+            return 0;
+        }
         memcpy(buf+i, buf_tem, status);
         i = i+status;
-
+        
         //printf("i:%d\n", i);
         //printf("len:%d\n", len);
         //printf("status:%d\n", status);
@@ -84,4 +90,5 @@ int recvData(const int client_fd, char buf[], int len)
         }
         
     }
+    return 1;
 }
