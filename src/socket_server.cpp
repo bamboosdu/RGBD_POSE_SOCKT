@@ -122,7 +122,7 @@ int main(int argc, char **argv){
         printf("ask for POSE\n"); 
         getPose(server_pd);
  ////////////////////////////获取要去的目标点////////////////////////////
-    float *pose=new float[7];
+    float pose [1][7];
     printf("ask for goal\n");
     bool goal_ready=goalPose(sockgoal,pose);
     
@@ -131,12 +131,12 @@ int main(int argc, char **argv){
     printf("hi\n");
     goal.target_pose.header.frame_id = "/map";//send the goal point based on /map
     goal.target_pose.header.stamp = ros::Time::now();
-    goal.target_pose.pose.position.x = pose[0];
-    goal.target_pose.pose.position.y = pose[1];
+    goal.target_pose.pose.position.x = pose[0][0];
+    goal.target_pose.pose.position.y = pose[0][1];
     goal.target_pose.pose.position.z = 0;
-     printf("pose[%d]\n",pose[0]);
-     printf("pose[%d]\n",pose[0]);
-    goal.target_pose.pose.orientation.w = pose[6];
+     printf("pose[%d]\n",pose[0][0]);
+     printf("pose[%d]\n",pose[0][1]);
+    goal.target_pose.pose.orientation.w = pose[0][6];
  
     ROS_INFO("Sending goal");
     ac.sendGoal(goal);

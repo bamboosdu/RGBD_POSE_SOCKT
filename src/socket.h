@@ -37,6 +37,35 @@ int initializeDataEngine(unsigned short port_open){
     return sockfd;
 }
 
+
+// int initializeSendDataEngine(string ip , unsigned short port_open){
+//     int sockfd;
+//    // socket
+//     if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) == -1)//建立 socket
+//     {
+//         perror("socket");
+//         exit(1);
+//     } 
+
+//     my_addr.sin_family=AF_INET;
+//     my_addr.sin_port=htons(port_open);
+//     my_addr.sin_addr.s_addr = INADDR_ANY; //表示监听任何地址
+//     bzero(&(my_addr.sin_zero),8);
+//     //printf("ok\n");
+//     if (bind(sockfd, (struct sockaddr *)&my_addr, sizeof(struct sockaddr)) == -1) //将本机地址与建立的套接字号进行绑定
+//     {
+//         perror("bind");
+//         exit(1);
+//     }
+//     //printf("ok\n");
+//     if (listen(sockfd, BACKLOG) == -1) //开始监听
+//     {
+//         perror("listen");
+//         exit(1);
+//     }
+//     return sockfd;
+// }
+
 //向指定客户端发送数据
 bool sendData(const int client_fd, const char *ch, const int len)
 {

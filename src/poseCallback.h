@@ -8,6 +8,7 @@
 #include <stdlib.h> 
 #include <cstdio>
 
+//const int MAXRECV=10240;
 double poseAMCLx, poseAMCLy ,poseAMCLz,poseAMCLX,poseAMCLY,poseAMCLZ,poseAMCLW;// 前三个参数表示pose，后面两个参数表示orientation
 bool pose_ready=false;
 
@@ -77,24 +78,35 @@ bool getPose(int client_fd){
 
       
 }
-
-bool goalPose(int client_fd,float pose[7]){
+////////////////接收来自主机的pose/////////////////////////
+bool goalPose(int client_fd,float pose[1][7]){
     int data_len=7*sizeof(float);
     char* poseData=(char *)malloc(data_len);
-    
-    int rcv_len=recvData(client_fd,poseData,data_len);
+    float pose_test[7];
+    char pkgData[MAXRECV];
+    int rcv_len=recv(client_fd,pkgData,data_len,0);
     
     if(rcv_len<0){
+        printf("no pose from win pc!\n");
         return false;
     }
+   
+    memcpy(&poseData[0],&pkgData,rcv_len);
 
     //copy the data from socket pkg
     int ind=0;
-    
-    for(int i=0;i<7;++i){
-        memcpy(&pose[i],&poseData[ind],sizeof(float));
-        ind+sizeof(float);
+    for(int i=0;i<7;i++){
+        //printf("the posedata[]=%d\n",poseData[i]);
+        memcpy(&pose[0][i],&poseData[ind],sizeof(float));
+       // memcpy(&pose_test[i],&poseData[ind],sizeof(float));
+        ind+=sizeof(float);
     }
+    std::cout<<"Translation: ["<<pose[0][0]<<","<<pose[0][1]<<","<<pose[0][2]<<"]"<<std::endl;
+    std::cout<<"Rotation:in Quaternion: ["<<pose[0][3]<<","<<pose[0][4]<<","<<pose[0][5]<<","<<pose[0][6]<<"]"<<std::endl;
+
+    // std::cout<<"Translation: ["<<pose_test[0]<<","<<pose_test[1]<<","<<pose_test[2]<<"]"<<std::endl;
+    // std::cout<<"Rotation:in Quaternion: ["<<pose_test[3]<<","<<pose_test[4]<<","<<pose_test[5]<<","<<pose_test[6]<<"]"<<std::endl;
+    delete poseData;
     return true;
 
     //free(poseData);
