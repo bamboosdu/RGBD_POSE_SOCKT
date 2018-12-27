@@ -12,7 +12,7 @@ set(octomap_DIR /opt/ros/kinetic/share/octomap)
 
 set(gazebo_DIR "/usr/share/gazebo/cmake")
 
-set(OpenCV_DIR "/usr/share/OpenCV")
+set(OpenCV_DIR "/usr/local/share/OpenCV")
 
 find_package(catkin REQUIRED COMPONENTS
   rospy

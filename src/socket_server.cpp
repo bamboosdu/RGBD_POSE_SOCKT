@@ -42,7 +42,7 @@ using namespace std;
 unsigned short portRGB= 3333; /*服务器监听端口号 发送rgbd*/
 unsigned short portPOSE= 3332; /*服务器监听端口号 发送pose*/
 unsigned short portGoal=3331;/*服务器监听端口号 接收pose*/
-int sockfd,sockpd,sockgoal,server_fd,server_pd,sin_size; /*sock_fd:监听 socket;client_fd:数据传输 socket */
+int sockfd,sockpd,sockgoal,server_fd,server_pd,server_goal,sin_size; /*sock_fd:监听 socket;client_fd:数据传输 socket */
 #define PI 3.1415926
 // data offline rcv writer
 ofstream ofs_off;
@@ -99,11 +99,21 @@ int main(int argc, char **argv){
         }
 
         printf("%s\n", "received a pose connection");
+///////////////////goal///////////////////////
+
+        if ((server_goal = accept(sockgoal, (struct sockaddr*)&remote_addr, (socklen_t *) &sin_size)) == -1)//接收客户端的连接
+        {
+            perror("accept");
+            continue;
+        }
+
+        printf("%s\n", "received a goal connection");
 
 ///////////////////// disable nagle///////////////
 
         int flag = 1;
-        if(setsockopt(server_fd, IPPROTO_TCP, TCP_NODELAY, (char*)&flag, sizeof(int))<0||setsockopt(server_pd, IPPROTO_TCP, TCP_NODELAY, (char*)&flag, sizeof(int))<0){
+        if(setsockopt(server_fd, IPPROTO_TCP, TCP_NODELAY, (char*)&flag, sizeof(int))<0||setsockopt(server_pd, IPPROTO_TCP, TCP_NODELAY, (char*)&flag, sizeof(int))<0||
+        setsockopt(server_goal, IPPROTO_TCP, TCP_NODELAY, (char*)&flag, sizeof(int))<0){
             printf("disable nagle failed\n");
         }
 //////////////////判断是否获取到rgbd和pose////////////////////////////
@@ -124,7 +134,7 @@ int main(int argc, char **argv){
  ////////////////////////////获取要去的目标点////////////////////////////
     float pose [1][7];
     printf("ask for goal\n");
-    bool goal_ready=goalPose(sockgoal,pose);
+    bool goal_ready=goalPose(server_goal,pose);
     
     if(goal_ready)  
     {
@@ -141,7 +151,7 @@ int main(int argc, char **argv){
     ROS_INFO("Sending goal");
     ac.sendGoal(goal);
  
-    ac.waitForResult();
+    //ac.waitForResult();
  
     if(ac.getState() == actionlib::SimpleClientGoalState::SUCCEEDED)
         ROS_INFO("Succeed!");
