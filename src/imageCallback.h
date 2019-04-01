@@ -61,7 +61,7 @@ void depthImageCallback(const sensor_msgs::ImageConstPtr& msg){
         for (int j = 0; j < 640; ++j)
         {
             
-            shortImg.ptr<short>(i)[j] = (short)(depthImg.ptr<float>(i)[j]);//* 1000);
+            shortImg.ptr<short>(i)[j] = (short)(depthImg.ptr<short>(i)[j]);//* 1000);
         }
     }
     crt_depth_images[0] = shortImg;
