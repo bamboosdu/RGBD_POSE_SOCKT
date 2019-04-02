@@ -112,3 +112,52 @@ bool goalPose(int client_fd,float pose[1][7]){
     //free(poseData);
     
 }
+bool sendSucceed(int client_fd){
+    
+    
+      
+     try{
+            int data_len=sizeof(char);
+
+            char state='t';
+            
+            char posedata[64];
+            memcpy(posedata, &state, sizeof(char));
+           
+            sendData(client_fd, posedata, data_len);
+            printf("send succeed to windows!");
+            return true;
+           }
+        catch (tf::TransformException &ex) {
+            ROS_ERROR("%s",ex.what());
+            ros::Duration(1.0).sleep();
+            //continue;
+           }
+  
+       }
+
+bool sendFailure(int client_fd){
+    
+    
+      
+     try{
+            int data_len=sizeof(char);
+
+            char state='f';
+            
+            char posedata[64];
+            memcpy(posedata, &state, sizeof(char));
+           
+            sendData(client_fd, posedata, data_len);
+            printf("send failure to windows!");
+            return true;
+           }
+        catch (tf::TransformException &ex) {
+            ROS_ERROR("%s",ex.what());
+            ros::Duration(1.0).sleep();
+            //continue;
+           }
+  
+       }
+
+      

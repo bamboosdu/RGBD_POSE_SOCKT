@@ -140,24 +140,34 @@ void *thread2(void *ptr){
                  goal.target_pose.pose.position.x = pose[0][0];
                  goal.target_pose.pose.position.y = pose[0][1];
                  goal.target_pose.pose.position.z = 0;
-                  printf("pose[%d]\n",pose[0][0]);
-                  printf("pose[%d]\n",pose[0][1]);
-                     goal.target_pose.pose.orientation.w = pose[0][6];
+                 goal.target_pose.pose.orientation.x=pose[0][3];
+                 goal.target_pose.pose.orientation.y=pose[0][4];
+                 goal.target_pose.pose.orientation.z=pose[0][5];
+                 goal.target_pose.pose.orientation.w = pose[0][6];
+                 printf("poseX[%f]\n",pose[0][0]);
+                 printf("poseY[%f]\n",pose[0][1]);
+                 printf("poseZ[%f]\n",pose[0][2]);
+                 printf("orientationX[%f]\n",pose[0][3]);
+                 printf("orientationY[%f]\n",pose[0][4]);
+                 printf("orientationZ[%f]\n",pose[0][5]);
+                 printf("orientationW[%f]\n",pose[0][6]);
     
           ROS_INFO("Sending goal");
     //ac.sendGoal(goal);
     ac->sendGoal(goal);
  
-    //ac.waitForResult();
+    ac->waitForResult();
  
     //if(ac.getState() == actionlib::SimpleClientGoalState::SUCCEEDED)
     if(ac->getState() == actionlib::SimpleClientGoalState::SUCCEEDED)
-        ROS_INFO("Succeed!");
-        
-    else
+       {
+           ROS_INFO("Succeed!");
+           sendSucceed(server_goal);
+        }
+    else{
         ROS_INFO("The base failed to move !");      
-     
-        
+        sendFailure(server_goal);    
+    }
 
          }
     }
@@ -168,7 +178,7 @@ void *thread2(void *ptr){
 
 
 
-int main(int argc, char **argv){
+int main(int argc, char **argv){    
 
     // run move_controller
     ros::init(argc, argv, "octo_navi");
@@ -200,8 +210,8 @@ int main(int argc, char **argv){
 
 
 
-///////////////////// disable nagle///////////////
-pthread_t id_1;
+///////////////////// 创建多线程///////////////
+        pthread_t id_1;
         int test = 1;
         int a=pthread_create(&id_1,NULL,thread1,&test);
          pthread_t id_2;
