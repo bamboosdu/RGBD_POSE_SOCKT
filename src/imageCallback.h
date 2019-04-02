@@ -67,10 +67,29 @@ void depthImageCallback(const sensor_msgs::ImageConstPtr& msg){
     crt_depth_images[0] = shortImg;
     depth_ready = true;
     //  show img
-    //printf("show the depth image.\n");
+  
     //cv::imshow("depth", depthImg);
     //cv::imshow("short", shortImg0);
     //getchar();
+    //cv::imshow("depth", depthImg);
+    //cv::imshow("short", shortImg0);
+    //getchar();
+    //cv::imshow("depth", depthImg);
+    //cv::imshow("short", shortImg0);
+    //getchar();
+    //cv::imshow("depth", depthImg);
+    //cv::imshow("short", shortImg0);
+    //getchar();
+    //cv::imshow("depth", depthImg);
+    //cv::imshow("short", shortImg0);
+    //getchar();
+    //cv::imshow("depth", depthImg);
+    //cv::imshow("short", shortImg0);
+
+
+    //cv::imshow("short", shortImg0);
+    //getchar();
+
    // cv::waitKey(1);
     //*/
 }

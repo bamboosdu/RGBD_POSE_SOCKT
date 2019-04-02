@@ -18,6 +18,7 @@
 #include <stdio.h> 
 #include <stdlib.h> 
 #include <cstdio>
+#include <boost/thread.hpp>
 // socket
 #include <sys/types.h> 
 #include <netinet/in.h> 
@@ -49,6 +50,123 @@ ofstream ofs_off;
 //movebase
 typedef actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> MoveBaseClient;
 
+move_base_msgs::MoveBaseGoal goal;
+MoveBaseClient * ac;
+
+
+void *thread1(void *ptr){
+                while(1){
+///////////////////rgbd///////////////////////
+
+        if ((server_fd = accept(sockfd, (struct sockaddr*)&remote_addr, (socklen_t *) &sin_size)) == -1)//接收客户端的连接
+            {
+                perror("accept");
+                continue;
+            }
+
+        printf("%s\n", "received a rgbd connection");
+
+///////////////////pose///////////////////////
+
+        if ((server_pd = accept(sockpd, (struct sockaddr*)&remote_addr, (socklen_t *) &sin_size)) == -1)//接收客户端的连接
+            {
+                perror("accept");
+                continue;
+            }
+
+        printf("%s\n", "received a pose connection");
+ 
+        int flag = 1;
+        if(setsockopt(server_fd, IPPROTO_TCP, TCP_NODELAY, (char*)&flag, sizeof(int))<0||setsockopt(server_pd, IPPROTO_TCP, TCP_NODELAY, (char*)&flag, sizeof(int))<0){
+                printf("disable nagle failed\n");
+            }
+       
+//////////////////判断是否获取到rgbd和pose////////////////////////////
+         while(rgb_ready==false||depth_ready==false||pose_ready==false)
+            {
+       
+                ros::spinOnce();
+        
+            }
+
+          printf("ask for RGBD\n");
+          getRGBD(server_fd);
+        
+        
+          printf("ask for POSE\n"); 
+          getPose(server_pd);
+        
+          printf("thread of rgbd and pose is done!\n");
+          //return 0;
+                }
+}
+
+
+
+void *thread2(void *ptr){
+
+    while(1){
+
+ ///////////////////goal///////////////////////
+
+        if ((server_goal = accept(sockgoal, (struct sockaddr*)&remote_addr, (socklen_t *) &sin_size)) == -1)//接收客户端的连接
+            {
+                perror("accept");
+                continue;
+            }
+
+        printf("%s\n", "received a goal connection");
+        int flag = 1;
+        if(setsockopt(server_goal, IPPROTO_TCP, TCP_NODELAY, (char*)&flag, sizeof(int))<0){
+                printf("disable nagle failed\n");
+            }
+        while(pose_ready==false)
+            {
+                if(pose_ready==false)
+                printf("%s\n","pose not ready!");
+      // getchar();
+                ros::spinOnce();
+            }
+     ////////////////////////////获取要去的目标点////////////////////////////
+            float pose [1][7];
+            printf("ask for goal\n");
+            bool goal_ready=goalPose(server_goal,pose);
+    
+        if(goal_ready)  
+            {
+
+             goal.target_pose.header.frame_id = "/map";//send the goal point based on /map
+                 goal.target_pose.header.stamp = ros::Time::now();
+                 goal.target_pose.pose.position.x = pose[0][0];
+                 goal.target_pose.pose.position.y = pose[0][1];
+                 goal.target_pose.pose.position.z = 0;
+                  printf("pose[%d]\n",pose[0][0]);
+                  printf("pose[%d]\n",pose[0][1]);
+                     goal.target_pose.pose.orientation.w = pose[0][6];
+    
+          ROS_INFO("Sending goal");
+    //ac.sendGoal(goal);
+    ac->sendGoal(goal);
+ 
+    //ac.waitForResult();
+ 
+    //if(ac.getState() == actionlib::SimpleClientGoalState::SUCCEEDED)
+    if(ac->getState() == actionlib::SimpleClientGoalState::SUCCEEDED)
+        ROS_INFO("Succeed!");
+        
+    else
+        ROS_INFO("The base failed to move !");      
+     
+        
+
+         }
+    }
+} 
+
+
+
+
+
 
 int main(int argc, char **argv){
 
@@ -67,100 +185,38 @@ int main(int argc, char **argv){
    
     //发布pose到目标点话题
 
-    MoveBaseClient ac("move_base", true);// tell the client we will spin a thread by default
-    move_base_msgs::MoveBaseGoal goal;
+    ac = new MoveBaseClient("move_base", true);// tell the client we will spin a thread by default
+    
     sockfd=initializeDataEngine(portRGB);//获得rgbd图传的套接字
     sockpd=initializeDataEngine(portPOSE);//获得pose的套接字
     sockgoal=initializeDataEngine(portGoal);//下个目标点
 
-    while (1)
-    {
-        
-        sin_size = sizeof(my_addr);
 
-        printf("%s\n", "waiting for a connection");
+    //获取套接字
+    sin_size = sizeof(my_addr);
+
+    printf("%s\n", "waiting for a connection");
      
-///////////////////rgbd///////////////////////
 
-        if ((server_fd = accept(sockfd, (struct sockaddr*)&remote_addr, (socklen_t *) &sin_size)) == -1)//接收客户端的连接
-        {
-            perror("accept");
-            continue;
-        }
 
-        printf("%s\n", "received a rgbd connection");
-
-///////////////////pose///////////////////////
-
-        if ((server_pd = accept(sockpd, (struct sockaddr*)&remote_addr, (socklen_t *) &sin_size)) == -1)//接收客户端的连接
-        {
-            perror("accept");
-            continue;
-        }
-
-        printf("%s\n", "received a pose connection");
-///////////////////goal///////////////////////
-
-        if ((server_goal = accept(sockgoal, (struct sockaddr*)&remote_addr, (socklen_t *) &sin_size)) == -1)//接收客户端的连接
-        {
-            perror("accept");
-            continue;
-        }
-
-        printf("%s\n", "received a goal connection");
 
 ///////////////////// disable nagle///////////////
-
-        int flag = 1;
-        if(setsockopt(server_fd, IPPROTO_TCP, TCP_NODELAY, (char*)&flag, sizeof(int))<0||setsockopt(server_pd, IPPROTO_TCP, TCP_NODELAY, (char*)&flag, sizeof(int))<0||
-        setsockopt(server_goal, IPPROTO_TCP, TCP_NODELAY, (char*)&flag, sizeof(int))<0){
-            printf("disable nagle failed\n");
-        }
-//////////////////判断是否获取到rgbd和pose////////////////////////////
-         while(rgb_ready==false||depth_ready==false||pose_ready==false)
-    {
-       if(pose_ready==false)
-            printf("%s\n","pose not ready!");
-      // getchar();
-       ros::spinOnce();
-    }
-
-        printf("ask for RGBD\n");
-        getRGBD(server_fd);
-        
-        
-        printf("ask for POSE\n"); 
-        getPose(server_pd);
- ////////////////////////////获取要去的目标点////////////////////////////
-    float pose [1][7];
-    printf("ask for goal\n");
-    bool goal_ready=goalPose(server_goal,pose);
+pthread_t id_1;
+        int test = 1;
+        int a=pthread_create(&id_1,NULL,thread1,&test);
+         pthread_t id_2;
+        int b=pthread_create(&id_2,NULL,thread2,&test);
     
-    if(goal_ready)  
-    {
-    printf("hi\n");
-    goal.target_pose.header.frame_id = "/map";//send the goal point based on /map
-    goal.target_pose.header.stamp = ros::Time::now();
-    goal.target_pose.pose.position.x = pose[0][0];
-    goal.target_pose.pose.position.y = pose[0][1];
-    goal.target_pose.pose.position.z = 0;
-     printf("pose[%d]\n",pose[0][0]);
-     printf("pose[%d]\n",pose[0][1]);
-    goal.target_pose.pose.orientation.w = pose[0][6];
- 
-    ROS_INFO("Sending goal");
-    ac.sendGoal(goal);
- 
-    //ac.waitForResult();
- 
-    if(ac.getState() == actionlib::SimpleClientGoalState::SUCCEEDED)
-        ROS_INFO("Succeed!");
-    else
-        ROS_INFO("The base failed to move !");      
+  while(1){
 
-    }  
-    printf("no more goal!\n");
+        
 
-    }
-    return 0;
+  }
+
+    
+  
+  
+   
+  
+   
 }
